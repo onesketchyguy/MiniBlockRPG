@@ -1,0 +1,17 @@
+{
+    "name": "RPG.CharacterSystem",
+    "rootNamespace": "",
+    "references": [
+        "GUID:10bfef24ec9acee4186570553a8dfc24",
+        "GUID:2285ee1034839804db0a6bcdbc1f1167"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
