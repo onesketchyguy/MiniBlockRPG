@@ -34,7 +34,7 @@ namespace RPG.CharacterSystem
 
             if (other != null && other != parent)
             {
-                other.m_healthContainer.ModifyValue(-damage);
+                other.ModifyHealth(-damage, collision.ClosestPoint(transform.position));
                 debug += $" for {damage} dmg!";
             }
 

@@ -14,6 +14,9 @@ public class AttackAnimator : MonoBehaviour
     private int currentAnim = 0;
     private float lastAttack = 0.0f;
 
+    // FIXME: Have this be set automatically when switching weapons
+    [SerializeField] private Collider damagerCollider = null;
+
     [Range(0.0f, 1.0f)]
     [SerializeField] private float attackAnimLength = 0.75f;
     [SerializeField] private string attackString = "Attack";
@@ -72,11 +75,12 @@ public class AttackAnimator : MonoBehaviour
 
         _attackAnimWeight = Mathf.Lerp(_attackAnimWeight, attackLeft ? 1.0f : 0.0f, _animLayerSpeed * Time.deltaTime);
         animator.SetLayerWeight(_animCombatLayer, _attackAnimWeight);
+        damagerCollider.enabled = attackLeft && _attackAnimWeight > 0.0f;
     }
 
     public void TriggerAttack()
     {
-        SwapClip();        
+        SwapClip();
 
         if (_animAttackID == -1) _animAttackID = Animator.StringToHash(attackString);
         animator.SetTrigger(_animAttackID);        
@@ -88,7 +92,8 @@ public class AttackAnimator : MonoBehaviour
 
         lastAttack = Time.timeSinceLevelLoad;
 
-        var length = animator.GetCurrentAnimatorClipInfo(_animCombatLayer)[0].clip.length * attackAnimLength;        
+        var length = animator.GetCurrentAnimatorClipInfo(_animCombatLayer)[0].clip.length * attackAnimLength;
+        CancelInvoke(nameof(ResetTriggerAttack));
         Invoke(nameof(ResetTriggerAttack), length);
     }
 
