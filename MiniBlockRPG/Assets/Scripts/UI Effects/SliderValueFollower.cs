@@ -7,6 +7,7 @@ namespace UIEffects
     public class SliderValueFollower : MonoBehaviour
     {
         [SerializeField] private Slider slider;
+        private float lastMaxValue = 0;
 
         [SerializeField] private UnityEvent<float> onValueChanged;
         [Tooltip("Delay before sending event.")]
@@ -24,9 +25,24 @@ namespace UIEffects
             slider.onValueChanged.RemoveListener(ListenValueChanged);
         }
 
+        private void LateUpdate()
+        {
+            if (Time.frameCount % 60 != 0) return;
+
+            if (slider.maxValue != lastMaxValue)
+            {
+                ListenValueChanged(slider.value);
+            }
+        }
+
         private void ListenValueChanged(float v)
         {
-            onMaxValueChanged?.Invoke(slider.maxValue);
+            if (slider.maxValue != lastMaxValue)
+            {
+                lastMaxValue = slider.maxValue;
+                onMaxValueChanged?.Invoke(slider.maxValue);
+            }
+
             CancelInvoke(nameof(InvokeValueChanged));
             Invoke(nameof(InvokeValueChanged), valueDelay);
         }

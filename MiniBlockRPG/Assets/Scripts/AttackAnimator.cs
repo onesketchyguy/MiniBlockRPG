@@ -28,7 +28,17 @@ public class AttackAnimator : MonoBehaviour
 
     [SerializeField] private StarterAssets.StarterAssetsInputs _inputs = null;
 
+    [SerializeField] private string _attackSpeedVariableName = "AttSpeed";
+    [SerializeField] private int _attackSpeedVariableID = -1;
+    public float attackSpeed = 1.0f;
+
     private bool attackLeft = false;    
+
+    private float GetAnimLength()
+    {
+        var length = animator.GetCurrentAnimatorClipInfo(_animCombatLayer)[0].clip.length * attackAnimLength;
+        return length / attackSpeed;
+    }
 
     private void Update()
     {
@@ -42,7 +52,7 @@ public class AttackAnimator : MonoBehaviour
         }
 
         _attackAnimWeight = Mathf.Lerp(_attackAnimWeight, attackLeft ? 1.0f : 0.0f, _animLayerSpeed * Time.deltaTime);
-        animator.SetLayerWeight(_animCombatLayer, _attackAnimWeight);        
+        animator.SetLayerWeight(_animCombatLayer, _attackAnimWeight);
     }
 
     private void SwapClip()
@@ -77,21 +87,15 @@ public class AttackAnimator : MonoBehaviour
         controller[overrideClipName] = animations[currentAnim];
     }
 
-    // Using these so we can use Invoke()
-    private void EnableDamageCollider()
-    {
-        damagerCollider.enabled = true;
-    }
-
-    // Using these so we can use Invoke()
-    private void DisableDamageCollider()
-    {
-        damagerCollider.enabled = false;
-    }
-
     public void TriggerAttack()
     {
+        var length = GetAnimLength();
+        StopCoroutine(HandleCollider(length));
+
         SwapClip();
+
+        if (_attackSpeedVariableID == -1) _attackSpeedVariableID = Animator.StringToHash(_attackSpeedVariableName);
+        animator.SetFloat(_attackSpeedVariableID, attackSpeed);
 
         if (_animAttackID == -1) _animAttackID = Animator.StringToHash(attackString);
         animator.SetTrigger(_animAttackID);        
@@ -103,17 +107,25 @@ public class AttackAnimator : MonoBehaviour
 
         lastAttack = Time.timeSinceLevelLoad;
 
-        var length = animator.GetCurrentAnimatorClipInfo(_animCombatLayer)[0].clip.length * attackAnimLength;
+        length = GetAnimLength();
         CancelInvoke(nameof(ResetTriggerAttack));
         Invoke(nameof(ResetTriggerAttack), length);
 
-        Invoke(nameof(EnableDamageCollider), length * 0.1f);
-        Invoke(nameof(DisableDamageCollider), length * 0.9f);
+        StartCoroutine(HandleCollider(length));
     }
 
     public void ResetTriggerAttack()
     {
         animator.ResetTrigger(_animAttackID);
         attackLeft = false;
+    }
+
+    private IEnumerator HandleCollider(float length)
+    {
+        yield return new WaitForSeconds(length * 0.1f);
+        damagerCollider.enabled = true;
+
+        yield return new WaitForSeconds(length * 0.75f);
+        damagerCollider.enabled = false;
     }
 }
